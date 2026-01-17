@@ -1,0 +1,411 @@
+---
+title: "exam_prep"
+author: "Bienvenu_Uwayezu_101362"
+date: "2026-01-16"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#question 1
+
+set.seed(123)        # for reproducibility
+n <- 10000           # number of simulations
+
+# Generate uniform random values on [0, pi/3]
+t <- runif(n, min = 0, max = pi/3)
+
+# Monte Carlo estimate
+estimate <- (pi/3) * mean(sin(t))
+
+estimate
+
+exact_value <- 1 - cos(pi/3)
+exact_value
+
+
+
+```
+
+
+```{r}
+#Question 2
+#Monte Carlo estimation for several values of 𝑥x
+
+set.seed(123)
+
+mc_phi <- function(x, n = 1e5) {
+  u <- runif(n, 0, x)
+  mean(x * dnorm(u))
+}
+
+# values to compare
+x_vals <- c(0.5, 1, 1.5, 2)
+
+mc_est <- sapply(x_vals, mc_phi)
+true_val <- pnorm(x_vals)
+
+data.frame(
+  x = x_vals,
+  MonteCarlo = mc_est,
+  pnorm = true_val,
+  Error = mc_est - true_val
+)
+
+```
+```{r}
+#Variance of the Monte Carlo estimator for Φ(2)
+
+set.seed(123)
+
+n <- 1e5
+x <- 2
+
+u <- runif(n, 0, x)
+Y <- x * dnorm(u)
+
+phi_hat <- mean(Y)
+var_hat <- var(Y) / n
+
+phi_hat
+var_hat
+
+```
+```{r}
+#95% confidence interval for Φ(2)
+
+alpha <- 0.05
+z <- qnorm(1 - alpha/2)
+
+CI <- c(
+  phi_hat - z * sqrt(var_hat),
+  phi_hat + z * sqrt(var_hat)
+)
+
+CI
+pnorm(2)
+
+```
+
+```{r}
+#question 3
+#Monte Carlo using Uniform(0, 0.5)
+
+set.seed(123)
+
+n <- 10000
+x <- runif(n, min = 0, max = 0.5)
+
+theta_hat <- 0.5 * mean(exp(-x))
+
+# Monte Carlo variance estimate
+var_theta_hat <- (0.5^2 / n) * var(exp(-x))
+
+theta_hat
+var_theta_hat
+
+
+```
+
+```{r}
+#Monte Carlo using Exponential(1)
+set.seed(123)
+
+y <- rexp(n, rate = 1)
+
+theta_hat_star <- mean(y <= 0.5)
+
+# Monte Carlo variance estimate
+var_theta_hat_star <- var(as.numeric(y <= 0.5)) / n
+
+theta_hat_star
+var_theta_hat_star
+
+```
+
+```{r}
+#True value (for comparison)
+
+theta_true <- 1 - exp(-0.5)
+theta_true
+
+```
+```{r}
+#Variance comparison
+var_theta_hat
+var_theta_hat_star
+
+```
+
+```{r}
+#question 4
+#Monte Carlo CDF function
+
+mc_beta_cdf <- function(x, n = 10000) {
+  samples <- rbeta(n, shape1 = 3, shape2 = 3)
+  mean(samples <= x)
+}
+
+```
+
+```{r}
+set.seed(123)   # for reproducibility
+
+x_vals <- seq(0.1, 0.9, by = 0.1)
+
+mc_estimates <- sapply(x_vals, mc_beta_cdf, n = 10000)
+exact_values <- pbeta(x_vals, shape1 = 3, shape2 = 3)
+
+results <- data.frame(
+  x = x_vals,
+  MonteCarlo = mc_estimates,
+  Exact_pbeta = exact_values,
+  Difference = mc_estimates - exact_values
+)
+
+print(results)
+
+```
+```{r}
+#Optional: plot comparison
+
+plot(x_vals, exact_values, type = "l", lwd = 2,
+     ylab = "CDF", xlab = "x",
+     main = "Beta(3,3) CDF: Monte Carlo vs Exact")
+points(x_vals, mc_estimates, col = "red", pch = 19)
+legend("topleft",
+       legend = c("Exact (pbeta)", "Monte Carlo"),
+       col = c("black", "red"),
+       lty = c(1, NA), pch = c(NA, 19))
+
+```
+
+```{r}
+#Question 5
+
+set.seed(123)
+
+n <- 1000   # points per trial
+m <- 1000   # number of trials
+
+# Sample mean method
+I_mean <- numeric(m)
+for(j in 1:m){
+  X <- runif(n, 0, pi/3)
+  I_mean[j] <- (pi/3) * mean(sin(X))
+}
+var_mean <- var(I_mean)
+
+# Hit-or-miss method
+I_hit <- numeric(m)
+for(j in 1:m){
+  X <- runif(n, 0, pi/3)
+  Y <- runif(n, 0, 1)
+  hits <- sum(Y <= sin(X))
+  I_hit[j] <- (pi/3) * hits/n
+}
+var_hit <- var(I_hit)
+
+# Empirical efficiency
+efficiency <- var_hit / var_mean
+efficiency
+
+```
+
+```{r}
+#6.10 
+
+set.seed(123)
+n <- 10000
+U <- runif(n)
+f <- function(x) (1 + exp(-x)) / (x^2)
+
+# Standard MC
+I_mc <- mean(f(U))
+var_mc <- var(f(U)) / n
+
+# Antithetic MC
+I_anti <- mean( (f(U) + f(1-U)) / 2 )
+var_anti <- var( (f(U) + f(1-U)) / 2 ) / n
+
+# Variance reduction
+reduction <- 100 * (var_mc - var_anti) / var_mc
+
+cat("Standard MC estimate:", I_mc, "\n")
+cat("Antithetic MC estimate:", I_anti, "\n")
+cat("Variance reduction (%):", reduction, "\n")
+
+```
+
+```{r}
+#6.14 Question
+
+# Monte Carlo importance sampling estimate
+
+n <- 100000          # number of samples
+lambda <- 1          # can try lambda = 1 for exponential tail
+U <- runif(n)        # uniform samples
+X <- 1 - log(U)/lambda  # transform to exponential shifted by 1
+
+# compute weights
+w <- (X^2 / (lambda * sqrt(2*pi))) * exp(-X^2/2 + lambda*(X-1))
+
+# Monte Carlo estimate
+Z_hat <- mean(w)
+Z_hat
+
+```
+```{r}
+#6.15  Question
+
+n <- 100000
+n1 <- n2 <- n/2
+
+# Stratum 1: 1 <= X < 2
+U1 <- runif(n1)
+X1 <- 1 - log(U1)/1
+X1 <- pmin(X1, 2)  # truncate at 2
+w1 <- (X1^2 / (1*sqrt(2*pi))) * exp(-X1^2/2 + (X1-1))
+theta1 <- mean(w1)
+
+# Stratum 2: X >= 2
+U2 <- runif(n2)
+X2 <- 2 - log(U2)/1
+w2 <- (X2^2 / (1*sqrt(2*pi))) * exp(-X2^2/2 + (X2-1))
+theta2 <- mean(w2)
+
+# Stratum probabilities
+p1 <- pnorm(2) - pnorm(1)
+p2 <- 1 - pnorm(2)
+
+# Stratified estimate
+theta_strat <- p1*theta1 + p2*theta2
+theta_strat
+
+```
+
+
+
+```{r}
+#project question 
+#Determine a probability distribution for marks
+
+
+# Data: marks
+marks <- c(6.89,10.35,14.5,15.35,13.4,12.35,13.6,11.3,4.6,15.85,10.15,8.15,8.25,
+17.05,15.2,16.2,15.05,16.25,18.5,16.8,15.25,12.75,12.45,10.2,13.3,8.7,
+13.05,10.9,13,13.85,11.55,14.5,12.85,17.15,13.3,15.25,17.55,11.25,12.85,
+14.5,10.7,11.9,14,14.6,12.4,15.35,12.3,11.7,11.7,10,11.8,15.6,
+8.6,10,12.5,9.9,10.3,13.3,14,16.5,14,14.7,18.2,15.1,14.4,
+8.1,12.4,10.9,13.1,14.5,15.4,10,13.2,13.4,14.6,17.5,13.4,15.8,
+13.2,13.3,13.8,11.2,15.3,16.1,9.3,16.5,11.5,13,14.7,9.3,8.6,
+12.4,12.8,10.8,5.5,13.5,12.4,11.8,12.2,8.5,9.4,11.9,8.6,13.2,
+12.4,11.5,10.1,14.8,12.7,6.1,8.6,9.3,9.9,8.4,11.3,13.1,13.5,
+4.1,7.5,13.9,15.1,13.2,14.5,17.6,14.7,12.5,15.4,15.5,9.2,10.5,
+13.45,18.15,10.9,12.65,13.2,17.6,13.9,12.4,14.6,12.4,17.15,16.4,13.75,
+14.4,17.35,14.3,14.65,16.1,11.25,10.35,13.95,12.55,7.6,14.95,9.6,18.35,
+12.2,12.35,16.7,15.3,9,14.05,14.65,11.15,17.45,4.75,13.6,14.4,15.2,
+8.75,13.4,13.6,14.35,12.65,14.9,15.1,15.45,16.55,9.75,16.9,14.35,12.66,
+11.44,11.47,12.1,11.34,10.88,8.34,13.24,15.59,14.09,12.4,15.84,12.39,17.64,
+12.78,12.78,15.41,11.21,12.56,10.85,16.04,11.1,13.25,15.9,14.5,12.42,11,
+10.08,12.8,8.18,15.75,13.26,12.61,13.98,6.77,13.85,12.42,15.36,13.24,13.88,
+17.7,15.02,17.22,16.98,16.12,17.66,17.64,13.32,17.14,11.6,18.1,14.13,14.98,
+16.44,18.73,14.82,16.02,14.66,14.48,12.56,10.21,18.72,19.42,16.22,17.07,15.82,
+15.27)
+
+# Basic stats
+mean(marks)
+sd(marks)
+hist(marks, breaks=20, main="Histogram of Marks", xlab="Marks")
+
+```
+
+```{r}
+#Probability distribution (analytical form)
+
+mu <- mean(marks)
+sigma <- sd(marks)
+
+
+```
+
+```{r}
+# Normal PDF function
+f <- function(x) {
+  1/(sigma*sqrt(2*pi)) * exp(-(x-mu)^2/(2*sigma^2))
+}
+
+```
+
+
+```{r}
+#Step 3: Generate a random sample
+
+n <- length(marks)
+set.seed(123) # for reproducibility
+sim_marks <- rnorm(n, mean=mu, sd=sigma)
+
+```
+
+
+
+```{r}
+ks.test(marks, "pnorm", mean=mu, sd=sigma)
+
+```
+```{r}
+#extra for visualization 
+
+hist(marks, breaks=20, probability=TRUE, main="Histogram with Normal Fit", xlab="Marks")
+curve(dnorm(x, mean=mu, sd=sigma), add=TRUE, col="red", lwd=2)
+
+```
+
+
+```{r}
+#question 2 in project
+
+# Load the rock dataset
+data("rock")
+head(rock)  # Optional: check the first few rows
+
+# Compute the mean vector and covariance matrix
+mean_vector <- colMeans(rock)
+cov_matrix <- cov(rock)
+
+# Set the sample size
+n <- 500
+
+# Load the MASS package for mvrnorm()
+library(MASS)
+
+# Generate multivariate normal sample
+set.seed(123)  # for reproducibility
+rock_mvn <- mvrnorm(n = n, mu = mean_vector, Sigma = cov_matrix)
+
+# Convert to a data frame for easier use
+rock_mvn_df <- as.data.frame(rock_mvn)
+colnames(rock_mvn_df) <- colnames(rock)
+
+# Check the generated data
+head(rock_mvn_df)
+
+```
+
+
+```{r}
+# Compare means
+rbind(Original = colMeans(rock), Generated = colMeans(rock_mvn_df))
+
+# Compare variances
+rbind(Original = apply(rock, 2, var), Generated = apply(rock_mvn_df, 2, var))
+
+# Compare correlation matrices
+cor(rock)
+cor(rock_mvn_df)
+
+```
+
