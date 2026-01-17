@@ -363,7 +363,7 @@ t&lt;-runif(m,0,pi/3)
 g&lt;-sin(t)
 teta&lt;-(pi/3)*mean(g)
 teta</code></pre>
-<pre><code>## [1] 0.4982949</code></pre>
+<pre><code>## [1] 0.5027208</code></pre>
 <p>Question2</p>
 <pre class="r"><code>m&lt;-10^4
 x&lt;-2
@@ -371,14 +371,14 @@ y&lt;-runif(m,0,1)
 g&lt;- exp(-x^2*y^2/2)
 thi&lt;- 0.5+ x*mean(g/sqrt(2*pi))
 thi</code></pre>
-<pre><code>## [1] 0.9754867</code></pre>
+<pre><code>## [1] 0.9813293</code></pre>
 <pre class="r"><code>m&lt;-10^4
 x&lt;-2
 g&lt;- exp(-x^2*y^2/2)
 thi&lt;- 0.5+ x*mean(g/sqrt(2*pi))
 variance&lt;-mean((g-mean(g))^2)/m
 variance</code></pre>
-<pre><code>## [1] 8.189204e-06</code></pre>
+<pre><code>## [1] 8.456333e-06</code></pre>
 <pre class="r"><code>pnorm(2)</code></pre>
 <pre><code>## [1] 0.9772499</code></pre>
 <pre class="r"><code>n&lt;-10000
@@ -386,14 +386,14 @@ X&lt;-2
 y&lt;-runif(n, 0, 1)
 ph.hat2&lt;-0.5 + 2*mean(exp(-2*y^2)/sqrt(2*pi))
 ph.hat2</code></pre>
-<pre><code>## [1] 0.9771294</code></pre>
+<pre><code>## [1] 0.9806068</code></pre>
 <p>Question 3</p>
 <pre class="r"><code>n&lt;-10^4
 u&lt;-runif(n,0,0.5)
 g&lt;-exp(-u)
 teta&lt;-0.5* mean(g)
 teta</code></pre>
-<pre><code>## [1] 0.3933181</code></pre>
+<pre><code>## [1] 0.3930197</code></pre>
 <p>to compute the variance</p>
 <pre class="r"><code># Variance estimate
 n&lt;-10^4
@@ -401,10 +401,10 @@ u&lt;-runif(n,0,0.5)
 g&lt;-exp(-u)
 teta&lt;-0.5* mean(g)
 teta</code></pre>
-<pre><code>## [1] 0.3938048</code></pre>
+<pre><code>## [1] 0.392822</code></pre>
 <pre class="r"><code>Var_theta_hat &lt;- mean((g-mean(g))^2) / n
 Var_theta_hat</code></pre>
-<pre><code>## [1] 1.288634e-06</code></pre>
+<pre><code>## [1] 1.253927e-06</code></pre>
 <p>Question 4</p>
 <pre class="r"><code># Define x values
 x &lt;- seq(0.1, 0.9, by = 0.1)
@@ -423,9 +423,9 @@ for (i in 1:length(x)) {
 # Exact CDF using pbeta
 exact_values &lt;- pbeta(x, 3, 3)
 head(y)</code></pre>
-<pre><code>## [1] 0.2739060 0.8531594 0.6296723 0.5118731 0.5698354 0.8107264</code></pre>
+<pre><code>## [1] 0.3513554 0.5648784 0.5388048 0.3433692 0.4774616 0.4335896</code></pre>
 <pre class="r"><code>mc_values</code></pre>
-<pre><code>## [1] 0.00868 0.05773 0.16532 0.31942 0.50218 0.68416 0.83719 0.94335 0.99137</code></pre>
+<pre><code>## [1] 0.00797 0.05776 0.16348 0.31943 0.50282 0.68446 0.83747 0.94366 0.99195</code></pre>
 <pre class="r"><code>exact_values &lt;- pbeta(x, 3, 3)
 exact_values </code></pre>
 <pre><code>## [1] 0.00856 0.05792 0.16308 0.31744 0.50000 0.68256 0.83692 0.94208 0.99144</code></pre>
@@ -727,6 +727,45 @@ v &lt;- 2
 X &lt;- matrix(rnorm(n*v), n, v)^2 #matrix of sq. normals
 #sum the squared normal across each row: method 1
 y &lt;- rowSums(X)</code></pre>
+<p>QUESTION 6.10</p>
+<pre class="r"><code>n&lt;-10^4
+x&lt;-runif(n,0,1)
+g&lt;- function (x) exp(-(x))/(1+ x^2)
+thi&lt;-1* mean(g)</code></pre>
+<pre><code>## Warning in mean.default(g): argument is not numeric or logical: returning NA</code></pre>
+<pre class="r"><code>thi</code></pre>
+<pre><code>## [1] NA</code></pre>
+<pre class="r"><code>var1= var(g(x))/n
+var1</code></pre>
+<pre><code>## [1] 6.024124e-06</code></pre>
+<pre class="r"><code>set.seed(123)
+n &lt;- 10000  # number of uniform draws
+
+# Simple Monte Carlo
+U &lt;- runif(n)
+f &lt;- function(x) exp(-x)/(1 + x^2)
+I_MC &lt;- mean(f(U))
+var_MC &lt;- var(f(U))/n
+
+# Antithetic Monte Carlo
+fU &lt;- f(U)
+f1U &lt;- f(1 - U)
+I_AV &lt;- mean((fU + f1U)/2)
+var_AV &lt;- var((fU + f1U)/2)/n
+
+# Percent variance reduction
+reduction &lt;- 100 * (var_MC - var_AV)/var_MC
+
+I_MC</code></pre>
+<pre><code>## [1] 0.5263106</code></pre>
+<pre class="r"><code>I_AV</code></pre>
+<pre><code>## [1] 0.5242827</code></pre>
+<pre class="r"><code>var_MC</code></pre>
+<pre><code>## [1] 5.944048e-06</code></pre>
+<pre class="r"><code>var_AV</code></pre>
+<pre><code>## [1] 1.088795e-07</code></pre>
+<pre class="r"><code>reduction</code></pre>
+<pre><code>## [1] 98.16826</code></pre>
 
 
 

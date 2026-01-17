@@ -402,3 +402,43 @@ y <- rowSums(X)
 
 ```
 
+QUESTION 6.10
+
+```{r}
+n<-10^4
+x<-runif(n,0,1)
+g<- function (x) exp(-(x))/(1+ x^2)
+thi<-1* mean(g)
+thi
+var1= var(g(x))/n
+var1
+
+
+```
+```{r}
+set.seed(123)
+n <- 10000  # number of uniform draws
+
+# Simple Monte Carlo
+U <- runif(n)
+f <- function(x) exp(-x)/(1 + x^2)
+I_MC <- mean(f(U))
+var_MC <- var(f(U))/n
+
+# Antithetic Monte Carlo
+fU <- f(U)
+f1U <- f(1 - U)
+I_AV <- mean((fU + f1U)/2)
+var_AV <- var((fU + f1U)/2)/n
+
+# Percent variance reduction
+reduction <- 100 * (var_MC - var_AV)/var_MC
+
+I_MC
+I_AV
+var_MC
+var_AV
+reduction
+
+```
+
